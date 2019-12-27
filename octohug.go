@@ -89,6 +89,7 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 	headerTagSeen := false
 	inCategories := false
 	firstCategoryAdded := false
+	firstInlineCategoryAdded := false
 	inTags := false
 	firstTagAdded := false
 	octopressFileReader := bufio.NewReaderSize(octopressFile, 10*1024)
@@ -107,8 +108,41 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 
 		if strings.Contains(octopressLineAsString, "categories:") {
 			inCategories = true
-			hugoFileWriter.WriteString("Categories = [")
+			hugoFileWriter.WriteString("categories = [")
+			fmt.Printf("contains categories...\n")
+			fmt.Printf("%s\n", octopressLineAsString)
+
+			// handle alternative categories syntax: `categories: [foo, bar, baz]`
+			// TODO handle multiline
+			if strings.Contains(octopressLineAsString, "[") {
+				// fmt.Printf("found opening bracket...\n")
+				openingBracketPos := strings.Index(octopressLineAsString, "[")
+				// fmt.Printf("pos: %v\n", openingBracketPos)
+				closingBracketPos := strings.Index(octopressLineAsString, "]")
+				// fmt.Printf("pos: %v\n", closingBracketPos)
+
+				categoryString := octopressLineAsString[openingBracketPos+1 : closingBracketPos]
+
+				// fmt.Printf("categoryString: %v\n", categoryString)
+
+				categories := strings.Split(categoryString, ", ")
+				// fmt.Printf("categories: %v\n", categories)
+
+				for _, category := range categories {
+					fmt.Printf("\"%v\"\n", category)
+
+					if firstInlineCategoryAdded {
+						hugoFileWriter.WriteString(", ")
+					}
+
+					hugoFileWriter.WriteString("\"" + category + "\"")
+					firstInlineCategoryAdded = true
+				}
+			}
 		} else if strings.Contains(octopressLineAsString, "tags:") {
+			fmt.Printf("contains tags...")
+			fmt.Printf("%s\n", octopressLineAsString)
+
 			if inCategories {
 				inCategories = false
 				hugoFileWriter.WriteString("]\n")
@@ -134,6 +168,8 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 			}
 			hugoFileWriter.WriteString("]\n")
 		} else if inCategories && !inTags {
+			fmt.Printf("inCategories and not in tags...")
+			fmt.Printf("%s\n", octopressLineAsString)
 			matches = octopressCategoryOrTagNameRegex.FindStringSubmatch(octopressLineAsString)
 			if len(matches) > 1 {
 				if firstCategoryAdded {
@@ -213,8 +249,10 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 }
 
 func init() {
-	flag.StringVar(&octopressPostsDirectory, "octo", "source/_posts", "path to octopress posts directory")
-	flag.StringVar(&hugoPostDirectory, "hugo", "content/post", "path to hugo post directory")
+	// flag.StringVar(&octopressPostsDirectory, "octo", "source/_posts", "path to octopress posts directory")
+	flag.StringVar(&octopressPostsDirectory, "octo", "example-input", "path to octopress posts directory")
+	// flag.StringVar(&hugoPostDirectory, "hugo", "content/post", "path to hugo post directory")
+	flag.StringVar(&hugoPostDirectory, "hugo", "example-output", "path to hugo post directory")
 }
 
 func main() {
