@@ -23,6 +23,43 @@ import (
 var octopressPostsDirectory string
 var hugoPostDirectory string
 
+type HeaderSyntax int
+
+const (
+	yaml = iota
+	toml
+)
+
+func (headerSyntax HeaderSyntax) String() string {
+	return [...]string{"yaml", "toml"}[headerSyntax]
+}
+
+var useHeaderSyntax HeaderSyntax = yaml
+
+func setHeaderSyntaxBoundary(syntax HeaderSyntax) string {
+	switch syntax {
+	case yaml:
+		return "---"
+	case toml:
+		return "+++"
+	}
+	return "+++"
+}
+
+func setHeaderSyntaxKeyValueSymbol(syntax HeaderSyntax) string {
+	switch syntax {
+	case yaml:
+		return ": "
+	case toml:
+		return " = "
+	}
+	return " = "
+}
+
+func formatKeyWithSeparator(key string, syntax HeaderSyntax) string {
+	return fmt.Sprintf("%s%s", key, setHeaderSyntaxKeyValueSymbol(syntax))
+}
+
 func readFile(path string) (string, error) {
 	file, fileError := os.Open(path)
 	if fileError != nil {
@@ -96,6 +133,8 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 	octopressLine, isPrefix, lineError := octopressFileReader.ReadLine()
 	for lineError == nil && !isPrefix {
 		octopressLineAsString := string(octopressLine)
+		separator := setHeaderSyntaxKeyValueSymbol(useHeaderSyntax)
+
 		if octopressLineAsString == "---" {
 			headerTagSeen = !headerTagSeen
 			if inCategories || inTags {
@@ -103,14 +142,13 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 				inCategories = false
 				inTags = false
 			}
-			octopressLineAsString = string("+++")
+			octopressLineAsString = setHeaderSyntaxBoundary(useHeaderSyntax)
 		}
 
 		if strings.Contains(octopressLineAsString, "categories:") {
 			inCategories = true
-			hugoFileWriter.WriteString("categories = [")
-			fmt.Printf("contains categories...\n")
-			fmt.Printf("%s\n", octopressLineAsString)
+			// hugoFileWriter.WriteString("categories = [")
+			hugoFileWriter.WriteString(fmt.Sprintf("categories%s[", separator))
 
 			// handle alternative categories syntax: `categories: [foo, bar, baz]`
 			// TODO handle multiline
@@ -129,7 +167,7 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 				// fmt.Printf("categories: %v\n", categories)
 
 				for _, category := range categories {
-					fmt.Printf("\"%v\"\n", category)
+					// fmt.Printf("\"%v\"\n", category)
 
 					if firstInlineCategoryAdded {
 						hugoFileWriter.WriteString(", ")
