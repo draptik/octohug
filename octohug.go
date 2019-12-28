@@ -134,7 +134,6 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 	octopressLine, isPrefix, lineError := octopressFileReader.ReadLine()
 	for lineError == nil && !isPrefix {
 		octopressLineAsString := string(octopressLine)
-		separator := setHeaderSyntaxKeyValueSymbol(useHeaderSyntax)
 
 		if octopressLineAsString == "---" {
 			headerTagSeen = !headerTagSeen
@@ -148,17 +147,18 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 
 		if strings.Contains(octopressLineAsString, "categories:") {
 			inCategories = true
-			hugoFileWriter.WriteString(fmt.Sprintf("categories%s[", separator))
+			hugoFileWriter.WriteString(formatKeyWithSeparator("categories", useHeaderSyntax))
+			hugoFileWriter.WriteString("[")
 
 			// handle alternative categories syntax: `categories: [foo, bar, baz]`
-			// TODO handle multiline
+			// handle multiline?
 			if strings.Contains(octopressLineAsString, "[") {
 				openingBracketPos := strings.Index(octopressLineAsString, "[")
 				closingBracketPos := strings.Index(octopressLineAsString, "]")
-				categoryString := octopressLineAsString[openingBracketPos+1 : closingBracketPos]
-				categories := strings.Split(categoryString, ", ")
+				rawCategories := octopressLineAsString[openingBracketPos+1 : closingBracketPos]
+				rawCategoriesAsCollection := strings.Split(rawCategories, ", ")
 
-				for _, category := range categories {
+				for _, category := range rawCategoriesAsCollection {
 					if firstInlineCategoryAdded {
 						hugoFileWriter.WriteString(", ")
 					}
