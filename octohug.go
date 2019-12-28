@@ -34,6 +34,7 @@ func (headerSyntax HeaderSyntax) String() string {
 	return [...]string{"yaml", "toml"}[headerSyntax]
 }
 
+// CHANGE HERE: HEADER SYNTAX:
 var useHeaderSyntax HeaderSyntax = yaml
 
 func setHeaderSyntaxBoundary(syntax HeaderSyntax) string {
@@ -43,7 +44,7 @@ func setHeaderSyntaxBoundary(syntax HeaderSyntax) string {
 	case toml:
 		return "+++"
 	}
-	return "+++"
+	return "+++" // <-- fallback: original script behavior
 }
 
 func setHeaderSyntaxKeyValueSymbol(syntax HeaderSyntax) string {
@@ -53,7 +54,7 @@ func setHeaderSyntaxKeyValueSymbol(syntax HeaderSyntax) string {
 	case toml:
 		return " = "
 	}
-	return " = "
+	return " = " // <-- fallback: original script behavior
 }
 
 func formatKeyWithSeparator(key string, syntax HeaderSyntax) string {
@@ -147,28 +148,17 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 
 		if strings.Contains(octopressLineAsString, "categories:") {
 			inCategories = true
-			// hugoFileWriter.WriteString("categories = [")
 			hugoFileWriter.WriteString(fmt.Sprintf("categories%s[", separator))
 
 			// handle alternative categories syntax: `categories: [foo, bar, baz]`
 			// TODO handle multiline
 			if strings.Contains(octopressLineAsString, "[") {
-				// fmt.Printf("found opening bracket...\n")
 				openingBracketPos := strings.Index(octopressLineAsString, "[")
-				// fmt.Printf("pos: %v\n", openingBracketPos)
 				closingBracketPos := strings.Index(octopressLineAsString, "]")
-				// fmt.Printf("pos: %v\n", closingBracketPos)
-
 				categoryString := octopressLineAsString[openingBracketPos+1 : closingBracketPos]
-
-				// fmt.Printf("categoryString: %v\n", categoryString)
-
 				categories := strings.Split(categoryString, ", ")
-				// fmt.Printf("categories: %v\n", categories)
 
 				for _, category := range categories {
-					// fmt.Printf("\"%v\"\n", category)
-
 					if firstInlineCategoryAdded {
 						hugoFileWriter.WriteString(", ")
 					}
@@ -178,9 +168,6 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 				}
 			}
 		} else if strings.Contains(octopressLineAsString, "tags:") {
-			fmt.Printf("contains tags...")
-			fmt.Printf("%s\n", octopressLineAsString)
-
 			if inCategories {
 				inCategories = false
 				hugoFileWriter.WriteString("]\n")
