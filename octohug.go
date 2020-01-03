@@ -234,18 +234,21 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 		} else if strings.Contains(octopressLineAsString, "title: ") {
 			// to keep the urls the same as octopress, the title
 			// needs to be the filename
-			parts := strings.Split(octopressFilenameWithoutExtension, "-")
-			hugoFileWriter.WriteString(formatKeyWithSeparator("title", useHeaderSyntax))
-			hugoFileWriter.WriteString("\"")
-			firstPart := true
-			for _, part := range parts {
-				if !firstPart {
-					hugoFileWriter.WriteString(" ")
-				}
-				hugoFileWriter.WriteString(part)
-				firstPart = false
-			}
-			hugoFileWriter.WriteString("\"\n")
+			// ^ previous sentence only applies if not overridden by `config.toml` and usage of `slug` header.
+			//
+			// parts := strings.Split(octopressFilenameWithoutExtension, "-")
+			// hugoFileWriter.WriteString(formatKeyWithSeparator("title", useHeaderSyntax))
+			// hugoFileWriter.WriteString("\"")
+			// firstPart := true
+			// for _, part := range parts {
+			// 	if !firstPart {
+			// 		hugoFileWriter.WriteString(" ")
+			// 	}
+			// 	hugoFileWriter.WriteString(part)
+			// 	firstPart = false
+			// }
+			// hugoFileWriter.WriteString("\"\n")
+			hugoFileWriter.WriteString(octopressLineAsString + "\n")
 		} else if strings.Contains(octopressLineAsString, "description: ") {
 			parts := strings.Split(octopressLineAsString, ": ")
 			hugoFileWriter.WriteString(formatKeyWithSeparator("description", useHeaderSyntax))
