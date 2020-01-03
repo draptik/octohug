@@ -23,6 +23,7 @@ import (
 var octopressPostsDirectory string
 var hugoPostDirectory string
 
+// HeaderSyntax : either yaml or toml
 type HeaderSyntax int
 
 const (
