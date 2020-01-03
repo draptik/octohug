@@ -69,3 +69,9 @@ I am using some real posts from my previous octopress blog. The examples are loc
 
 Example output files are located in folder `example-output`. This folder is excluded from git (via
 gitignore).
+
+## Testing the script
+
+```sh
+go run octohug.go
+```
