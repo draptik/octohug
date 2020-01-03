@@ -271,6 +271,14 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 			codeFileContent = strings.Replace(codeFileContent, "<", "&lt;", -1)
 			codeFileContent = strings.Replace(codeFileContent, ">", "&gt;", -1)
 			hugoFileWriter.WriteString("<pre><code>\n" + codeFileContent + "</code></pre>\n")
+		} else if strings.Contains(octopressLineAsString, "{% img") {
+			parts := strings.Split(octopressLineAsString, " ")
+			imageName := parts[2]
+			hugoFileWriter.WriteString("\n![img](" + imageName + ")\n")
+		} else if strings.Contains(octopressLineAsString, "{% gist") {
+			parts := strings.Split(octopressLineAsString, " ")
+			gistId := parts[2]
+			hugoFileWriter.WriteString("\n{{< gist draptik " + gistId + " >}}\n")
 		} else {
 			hugoFileWriter.WriteString(octopressLineAsString + "\n")
 		} // if octopressLineAsString == "categories:"
