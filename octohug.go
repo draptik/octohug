@@ -137,12 +137,16 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 		octopressLineAsString := string(octopressLine)
 
 		if octopressLineAsString == "---" {
-			headerTagSeen = !headerTagSeen
 			if inCategories || inTags {
 				hugoFileWriter.WriteString("]\n")
 				inCategories = false
 				inTags = false
 			}
+
+			if headerTagSeen {
+				hugoFileWriter.WriteString("draft: false\n")
+			}
+			headerTagSeen = !headerTagSeen
 			octopressLineAsString = setHeaderSyntaxBoundary(useHeaderSyntax)
 		}
 
@@ -229,7 +233,13 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 			// Date
 			hugoFileWriter.WriteString(formatKeyWithSeparator("date", useHeaderSyntax))
 			// hugoFileWriter.WriteString("\"" + parts[1] + "\"\n")
-			hugoFileWriter.WriteString(" " + parts[1] + "T" + parts[2] + ":00\n")
+
+			hugoDate := " " + parts[1] + "T" + parts[2]
+			// add missing seconds
+			if strings.Count(parts[2], ":") == 1 {
+				hugoDate = hugoDate + ":00"
+			}
+			hugoFileWriter.WriteString(hugoDate + "\n")
 
 			// Slug
 			// octoSlugDate := strings.Replace(parts[1], "-", "/", -1)
