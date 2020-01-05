@@ -225,12 +225,25 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 			firstTagAdded = true
 		} else if strings.Contains(octopressLineAsString, "date: ") {
 			parts := strings.Split(octopressLineAsString, " ")
+
+			// Date
 			hugoFileWriter.WriteString(formatKeyWithSeparator("date", useHeaderSyntax))
-			hugoFileWriter.WriteString("\"" + parts[1] + "\"\n")
-			octoSlugDate := strings.Replace(parts[1], "-", "/", -1)
-			octoFriendlySlug := octoSlugDate + "/" + octopressFilenameWithoutExtension
+			// hugoFileWriter.WriteString("\"" + parts[1] + "\"\n")
+			hugoFileWriter.WriteString(" " + parts[1] + "T" + parts[2] + ":00\n")
+
+			// Slug
+			// octoSlugDate := strings.Replace(parts[1], "-", "/", -1)
+			// octoFriendlySlug := octoSlugDate + "/" + octopressFilenameWithoutExtension
+			octoFriendlySlug := octopressFilenameWithoutExtension
 			hugoFileWriter.WriteString(formatKeyWithSeparator("slug", useHeaderSyntax))
 			hugoFileWriter.WriteString("\"" + octoFriendlySlug + "\"\n")
+
+			// Alias
+			aliasDate := strings.Replace(parts[1], "-", "/", -1)
+			alias := "/blog/" + aliasDate + "/" + octopressFilenameWithoutExtension
+			hugoFileWriter.WriteString(formatKeyWithSeparator("aliases", useHeaderSyntax))
+			hugoFileWriter.WriteString("[" + alias + "]\n")
+
 		} else if strings.Contains(octopressLineAsString, "title: ") {
 			// to keep the urls the same as octopress, the title
 			// needs to be the filename
@@ -275,10 +288,6 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 			parts := strings.Split(octopressLineAsString, " ")
 			imageName := parts[2]
 			hugoFileWriter.WriteString("\n![img](" + imageName + ")\n")
-		} else if strings.Contains(octopressLineAsString, "{% gist") {
-			parts := strings.Split(octopressLineAsString, " ")
-			gistId := parts[2]
-			hugoFileWriter.WriteString("\n{{< gist draptik " + gistId + " >}}\n")
 		} else {
 			hugoFileWriter.WriteString(octopressLineAsString + "\n")
 		} // if octopressLineAsString == "categories:"
@@ -293,10 +302,10 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 }
 
 func init() {
-	// flag.StringVar(&octopressPostsDirectory, "octo", "source/_posts", "path to octopress posts directory")
-	flag.StringVar(&octopressPostsDirectory, "octo", "example-input", "path to octopress posts directory")
-	// flag.StringVar(&hugoPostDirectory, "hugo", "content/post", "path to hugo post directory")
-	flag.StringVar(&hugoPostDirectory, "hugo", "example-output", "path to hugo post directory")
+	flag.StringVar(&octopressPostsDirectory, "octo", "source/_posts", "path to octopress posts directory")
+	// flag.StringVar(&octopressPostsDirectory, "octo", "example-input", "path to octopress posts directory")
+	flag.StringVar(&hugoPostDirectory, "hugo", "content/post", "path to hugo post directory")
+	// flag.StringVar(&hugoPostDirectory, "hugo", "example-output", "path to hugo post directory")
 }
 
 func main() {
